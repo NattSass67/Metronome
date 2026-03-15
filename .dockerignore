@@ -1,0 +1,6 @@
+# Ignore so COPY frontend/ gets a clean tree; npm ci installs in container
+frontend/node_modules
+frontend/.next
+.git
+*.md
+.gitignore
