@@ -9,9 +9,9 @@ const CLICK_DURATION = 0.03; // seconds
 
 /** Gain (volume) per level: accented > medium > weak */
 const GAIN: Record<ClickLevel, number> = {
-  high: 0.35,
-  mid: 0.2,
-  low: 0.1,
+  high: 0.5,
+  mid: 0.3,
+  low: 0.15,
 };
 
 /** Base frequency (Hz). Slightly brighter for accent. */

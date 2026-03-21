@@ -49,7 +49,7 @@ export function createScheduler(context: AudioContext): SchedulerHandle {
     const kMin = Math.ceil((now - startTime) / stepDuration);
     const kMax = Math.floor((now + lookaheadSec - startTime) / stepDuration);
     const steps = pattern.steps;
-
+    
     for (let k = kMin; k <= kMax; k++) {
       const stepIndex = k % steps.length;
       const level = steps[stepIndex];
@@ -64,6 +64,8 @@ export function createScheduler(context: AudioContext): SchedulerHandle {
     getPattern = getPatternFn;
     startTime = context.currentTime;
     paused = false;
+    // Schedule immediately so the very first beat isn't in the past when the interval ticks.
+    runSchedule();
     timerId = setInterval(runSchedule, SCHEDULE_INTERVAL_MS);
   }
 
