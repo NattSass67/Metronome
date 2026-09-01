@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Trash2 } from "lucide-react";
+import { FolderOpen, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -75,11 +75,11 @@ export function PresetsSection({
   );
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <div className="flex flex-wrap items-center gap-2">
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
         <Dialog open={loadOpen} onOpenChange={(open) => { setLoadOpen(open); if (open) refreshCustom(); }}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" aria-label="Open preset list to load a preset">
+              <FolderOpen className="size-4 mr-2" aria-hidden />
               Load preset
             </Button>
           </DialogTrigger>
@@ -146,6 +146,7 @@ export function PresetsSection({
       <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" aria-label="Save current pattern as preset">
+            <Save className="size-4 mr-2" aria-hidden />
             Save current pattern
           </Button>
         </DialogTrigger>
@@ -182,7 +183,6 @@ export function PresetsSection({
 
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 }

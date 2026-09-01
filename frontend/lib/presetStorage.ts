@@ -6,13 +6,7 @@ import type { Preset } from "./presets";
 const STORAGE_KEY = "metronome-custom-presets";
 
 const triggerLevelSchema = z.enum(["off", "low", "mid", "high"]);
-const subdivisionSchema = z.enum([
-  "whole",
-  "half",
-  "quarter",
-  "eighth",
-  "sixteenth",
-]);
+const subdivisionSchema = z.enum(["quarter", "eighth", "triplet", "sixteenth"]);
 
 const patternSchema = z.object({
   bpm: z.number().min(BPM_MIN).max(BPM_MAX),
