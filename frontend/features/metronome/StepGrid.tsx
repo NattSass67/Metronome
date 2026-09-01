@@ -61,7 +61,7 @@ export function StepGrid({ steps, stepsPerBeat, activeStepIndex, onStepChange, c
   return (
     <div className={cn("space-y-3", className)}>
       <div
-        className={cn("flex flex-wrap gap-1.5 justify-start items-center")}
+        className={cn("flex flex-wrap gap-1.5 justify-center items-center")}
         role="group"
         aria-label="Step grid"
       >
@@ -91,7 +91,7 @@ export function StepGrid({ steps, stepsPerBeat, activeStepIndex, onStepChange, c
           );
         })}
       </div>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400" aria-hidden>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center" aria-hidden>
         {LEGEND.map(({ level, label }) => (
           <span key={level} className="inline-flex items-center gap-1.5 mr-4">
             <span className={cn("rounded-full shrink-0", PIP_SIZE, pipClasses(level))} />

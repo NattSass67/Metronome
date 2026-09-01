@@ -1,11 +1,6 @@
 export type TriggerLevel = "off" | "low" | "mid" | "high";
 
-export type Subdivision =
-  | "whole"
-  | "half"
-  | "quarter"
-  | "eighth"
-  | "sixteenth";
+export type Subdivision = "quarter" | "eighth" | "triplet" | "sixteenth";
 
 export type TimeSignature = {
   numerator: number;

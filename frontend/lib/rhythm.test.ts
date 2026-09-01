@@ -7,8 +7,6 @@ import {
 describe("rhythm utilities", () => {
   describe("SUBDIVISION_DENOMINATOR (note value relationships)", () => {
     it("maps each subdivision to correct denominator", () => {
-      expect(SUBDIVISION_DENOMINATOR.whole).toBe(1);
-      expect(SUBDIVISION_DENOMINATOR.half).toBe(2);
       expect(SUBDIVISION_DENOMINATOR.quarter).toBe(4);
       expect(SUBDIVISION_DENOMINATOR.eighth).toBe(8);
       expect(SUBDIVISION_DENOMINATOR.sixteenth).toBe(16);
@@ -43,6 +41,15 @@ describe("rhythm utilities", () => {
     it("7/8 + eighth = 7", () => {
       expect(getStepsPerMeasure({ numerator: 7, denominator: 8 }, "eighth")).toBe(7);
     });
+    it("4/4 + triplet = 12 (3 steps per beat)", () => {
+      expect(getStepsPerMeasure({ numerator: 4, denominator: 4 }, "triplet")).toBe(12);
+    });
+    it("3/4 + triplet = 9", () => {
+      expect(getStepsPerMeasure({ numerator: 3, denominator: 4 }, "triplet")).toBe(9);
+    });
+    it("6/8 + triplet = 18", () => {
+      expect(getStepsPerMeasure({ numerator: 6, denominator: 8 }, "triplet")).toBe(18);
+    });
   });
 
   describe("isValidTimeSignatureAndSubdivision", () => {
@@ -52,6 +59,14 @@ describe("rhythm utilities", () => {
       ).toBe(true);
       expect(
         isValidTimeSignatureAndSubdivision({ numerator: 6, denominator: 8 }, "sixteenth")
+      ).toBe(true);
+    });
+    it("returns true for triplet with any positive numerator", () => {
+      expect(
+        isValidTimeSignatureAndSubdivision({ numerator: 4, denominator: 4 }, "triplet")
+      ).toBe(true);
+      expect(
+        isValidTimeSignatureAndSubdivision({ numerator: 7, denominator: 8 }, "triplet")
       ).toBe(true);
     });
     it("returns false when steps would be fractional", () => {

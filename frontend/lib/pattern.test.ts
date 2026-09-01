@@ -3,6 +3,7 @@ import type { TriggerLevel } from "./types";
 import {
   createDefaultPattern,
   generateDefaultSteps,
+  generateDownbeatSteps,
   resizeSteps,
   resizePatternForNewSettings,
   DEFAULT_BPM,
@@ -19,6 +20,42 @@ describe("pattern utilities", () => {
     });
     it("returns empty array for 0", () => {
       expect(generateDefaultSteps(0)).toEqual([]);
+    });
+  });
+
+  describe("generateDownbeatSteps", () => {
+    it("accents every beat in 4/4 quarter", () => {
+      expect(
+        generateDownbeatSteps({ numerator: 4, denominator: 4 }, "quarter")
+      ).toEqual(["high", "high", "high", "high"]);
+    });
+    it("accents downbeats only in 4/4 eighth", () => {
+      expect(
+        generateDownbeatSteps({ numerator: 4, denominator: 4 }, "eighth")
+      ).toEqual(["high", "off", "high", "off", "high", "off", "high", "off"]);
+    });
+    it("accents every beat in 3/4 quarter", () => {
+      expect(
+        generateDownbeatSteps({ numerator: 3, denominator: 4 }, "quarter")
+      ).toEqual(["high", "high", "high"]);
+    });
+    it("accents downbeats in 4/4 triplet (3 per beat)", () => {
+      expect(
+        generateDownbeatSteps({ numerator: 4, denominator: 4 }, "triplet")
+      ).toEqual([
+        "high",
+        "off",
+        "off",
+        "high",
+        "off",
+        "off",
+        "high",
+        "off",
+        "off",
+        "high",
+        "off",
+        "off",
+      ]);
     });
   });
 
@@ -44,7 +81,7 @@ describe("pattern utilities", () => {
   });
 
   describe("resizePatternForNewSettings", () => {
-    it("resizes steps when changing 4/4 quarter to 4/4 eighth", () => {
+    it("re-initializes downbeats when changing 4/4 quarter to 4/4 eighth", () => {
       const pattern = createDefaultPattern();
       expect(pattern.steps).toHaveLength(4);
       const updated = resizePatternForNewSettings(
@@ -52,26 +89,32 @@ describe("pattern utilities", () => {
         { numerator: 4, denominator: 4 },
         "eighth"
       );
-      expect(updated.steps).toHaveLength(8);
+      expect(updated.steps).toEqual([
+        "high",
+        "off",
+        "high",
+        "off",
+        "high",
+        "off",
+        "high",
+        "off",
+      ]);
       expect(updated.timeSignature).toEqual({ numerator: 4, denominator: 4 });
       expect(updated.subdivision).toBe("eighth");
       expect(updated.bpm).toBe(pattern.bpm);
     });
-    it("preserves existing step values by index when growing", () => {
-      const pattern = createDefaultPattern();
-      pattern.steps[0] = "high";
-      pattern.steps[1] = "mid";
+    it("re-initializes downbeats when changing time signature", () => {
+      const pattern = createDefaultPattern({
+        steps: ["high", "mid", "low", "off"] as TriggerLevel[],
+      });
       const updated = resizePatternForNewSettings(
         pattern,
-        { numerator: 4, denominator: 4 },
-        "eighth"
+        { numerator: 3, denominator: 4 },
+        "quarter"
       );
-      expect(updated.steps[0]).toBe("high");
-      expect(updated.steps[1]).toBe("mid");
-      expect(updated.steps[2]).toBe("off");
-      expect(updated.steps[7]).toBe("off");
+      expect(updated.steps).toEqual(["high", "high", "high"]);
     });
-    it("truncates when changing to fewer steps", () => {
+    it("re-initializes downbeats when changing subdivision to fewer steps", () => {
       const pattern = createDefaultPattern({
         timeSignature: { numerator: 4, denominator: 4 },
         subdivision: "eighth",
@@ -91,18 +134,18 @@ describe("pattern utilities", () => {
         { numerator: 4, denominator: 4 },
         "quarter"
       );
-      expect(updated.steps).toEqual(["high", "mid", "low", "off"]);
+      expect(updated.steps).toEqual(["high", "high", "high", "high"]);
     });
   });
 
   describe("createDefaultPattern", () => {
-    it("returns 4/4 quarter with 4 steps and default BPM", () => {
+    it("returns 4/4 quarter with downbeat accents and default BPM", () => {
       const p = createDefaultPattern();
       expect(p.bpm).toBe(DEFAULT_BPM);
       expect(p.timeSignature).toEqual(DEFAULT_TIME_SIGNATURE);
       expect(p.subdivision).toBe(DEFAULT_SUBDIVISION);
       expect(p.steps).toHaveLength(4);
-      expect(p.steps.every((s) => s === "off")).toBe(true);
+      expect(p.steps).toEqual(["high", "high", "high", "high"]);
     });
     it("accepts overrides for bpm, timeSignature, subdivision", () => {
       const p = createDefaultPattern({
@@ -114,6 +157,7 @@ describe("pattern utilities", () => {
       expect(p.timeSignature).toEqual({ numerator: 3, denominator: 4 });
       expect(p.subdivision).toBe("eighth");
       expect(p.steps).toHaveLength(6);
+      expect(p.steps).toEqual(["high", "off", "high", "off", "high", "off"]);
     });
   });
 });

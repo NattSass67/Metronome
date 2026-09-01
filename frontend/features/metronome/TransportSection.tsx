@@ -12,6 +12,7 @@ const ACTIVE_STEP_POLL_MS = 25;
 type TransportSectionProps = {
   pattern: Pattern;
   onActiveStepChange?: (index: number | null) => void;
+  variant?: "default" | "stage";
   className?: string;
 };
 
@@ -22,7 +23,7 @@ export type TransportSectionHandle = {
 type PlaybackState = "stopped" | "playing" | "paused";
 
 export const TransportSection = forwardRef<TransportSectionHandle, TransportSectionProps>(
-  function TransportSection({ pattern, onActiveStepChange, className }, ref) {
+  function TransportSection({ pattern, onActiveStepChange, variant = "default", className }, ref) {
     const contextRef = useRef<AudioContext | null>(null);
     const schedulerRef = useRef<SchedulerHandle | null>(null);
     const patternRef = useRef<Pattern>(pattern);
@@ -80,8 +81,9 @@ export const TransportSection = forwardRef<TransportSectionHandle, TransportSect
 
     const handleStop = useCallback(() => {
       schedulerRef.current?.stop();
+      onActiveStepChange?.(null);
       setState("stopped");
-    }, []);
+    }, [onActiveStepChange]);
 
     const togglePlayPause = useCallback(() => {
       if (state === "playing") {
@@ -107,6 +109,54 @@ export const TransportSection = forwardRef<TransportSectionHandle, TransportSect
     const isPlaying = state === "playing";
     const isPaused = state === "paused";
     const isActive = isPlaying || isPaused;
+
+    if (variant === "stage") {
+      return (
+        <div className={cn("flex items-center justify-center gap-4 sm:gap-6", className)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleStop}
+            disabled={!isActive}
+            aria-label="Stop"
+            className="size-11 rounded-full touch-manipulation text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          >
+            <Square className="size-5" aria-hidden />
+          </Button>
+
+          <Button
+            type="button"
+            variant="default"
+            size="icon"
+            onClick={() => void (isPlaying ? handlePause() : handlePlay())}
+            aria-label={isPlaying ? "Pause" : isPaused ? "Resume" : "Play"}
+            className={cn(
+              "size-20 sm:size-24 rounded-full touch-manipulation shadow-lg",
+              isPlaying && "ring-4 ring-primary/30"
+            )}
+          >
+            {isPlaying ? (
+              <Pause className="size-8 sm:size-9" aria-hidden />
+            ) : (
+              <Play className="size-8 sm:size-9 ml-1" aria-hidden />
+            )}
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleReset}
+            disabled={!isActive}
+            aria-label="Reset to start of bar"
+            className="size-11 rounded-full touch-manipulation text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          >
+            <RotateCcw className="size-5" aria-hidden />
+          </Button>
+        </div>
+      );
+    }
 
     return (
       <div className={cn("flex flex-wrap items-center gap-2 sm:gap-3", className)}>

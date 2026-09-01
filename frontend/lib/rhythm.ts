@@ -1,12 +1,12 @@
 import type { Subdivision, TimeSignature } from "./types";
 
+type DenominatorSubdivision = Exclude<Subdivision, "triplet">;
+
 /**
- * Note value as denominator: how many of this note fit in a whole note.
- * whole=1, half=2, quarter=4, eighth=8, sixteenth=16.
+ * Note value as denominator: quarter=4, eighth=8, sixteenth=16.
+ * Triplet is handled separately (3 steps per beat).
  */
-export const SUBDIVISION_DENOMINATOR: Record<Subdivision, number> = {
-  whole: 1,
-  half: 2,
+export const SUBDIVISION_DENOMINATOR: Record<DenominatorSubdivision, number> = {
   quarter: 4,
   eighth: 8,
   sixteenth: 16,
@@ -22,6 +22,9 @@ export function getStepsPerMeasure(
   subdivision: Subdivision
 ): number {
   const { numerator, denominator } = timeSignature;
+  if (subdivision === "triplet") {
+    return numerator * 3;
+  }
   const subdivDenom = SUBDIVISION_DENOMINATOR[subdivision];
   return (numerator * subdivDenom) / denominator;
 }
@@ -33,6 +36,9 @@ export function isValidTimeSignatureAndSubdivision(
   timeSignature: TimeSignature,
   subdivision: Subdivision
 ): boolean {
+  if (subdivision === "triplet") {
+    return timeSignature.numerator > 0;
+  }
   const steps = getStepsPerMeasure(timeSignature, subdivision);
   return Number.isInteger(steps) && steps > 0;
 }

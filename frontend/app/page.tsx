@@ -1,15 +1,11 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { PageLayout, PageHeader, SectionCard } from "@/components/layout";
-import { Separator } from "@/components/ui/separator";
-import { ControlsSection } from "@/features/metronome/ControlsSection";
-import { PresetsSection } from "@/features/metronome/PresetsSection";
-import { StepGrid } from "@/features/metronome/StepGrid";
-import { TransportSection, type TransportSectionHandle } from "@/features/metronome/TransportSection";
+import { PageLayout } from "@/components/layout";
+import { MetronomeStage } from "@/features/metronome/MetronomeStage";
+import type { TransportSectionHandle } from "@/features/metronome/TransportSection";
 import { BPM_MIN, BPM_MAX } from "@/lib/constants";
 import { createDefaultPattern } from "@/lib/pattern";
-import { getStepsPerBeat } from "@/lib/rhythm";
 import type { Pattern, TriggerLevel } from "@/lib/types";
 
 function isEditableElement(target: EventTarget | null): boolean {
@@ -63,41 +59,14 @@ export default function Home() {
 
   return (
     <PageLayout>
-      <PageHeader
-        title="Rhythm Trainer"
-        description="Programmable metronome for timing and subdivision practice"
+      <MetronomeStage
+        ref={transportRef}
+        pattern={pattern}
+        onPatternChange={setPattern}
+        activeStepIndex={activeStepIndex}
+        onActiveStepChange={setActiveStepIndex}
+        onStepChange={handleStepChange}
       />
-
-      <Separator className="bg-zinc-200 dark:bg-zinc-800" />
-
-      <SectionCard title="Controls" aria-label="Controls" className="p-4 sm:p-5">
-        <ControlsSection pattern={pattern} onPatternChange={setPattern} />
-      </SectionCard>
-
-      <SectionCard
-        title="Step grid"
-        aria-label="Step grid"
-        className="p-5 sm:p-8 md:py-10 ring-1 ring-zinc-200/80 dark:ring-zinc-700/60 bg-zinc-100/40 dark:bg-zinc-900/60"
-      >
-        <StepGrid
-          steps={pattern.steps}
-          stepsPerBeat={getStepsPerBeat(pattern.timeSignature, pattern.subdivision)}
-          activeStepIndex={activeStepIndex}
-          onStepChange={handleStepChange}
-        />
-      </SectionCard>
-
-      <SectionCard title="Transport" aria-label="Transport" className="p-4 sm:p-5">
-        <TransportSection
-          ref={transportRef}
-          pattern={pattern}
-          onActiveStepChange={setActiveStepIndex}
-        />
-      </SectionCard>
-
-      <SectionCard title="Presets" aria-label="Presets" className="p-4 sm:p-5">
-        <PresetsSection pattern={pattern} onPatternChange={setPattern} />
-      </SectionCard>
     </PageLayout>
   );
 }

@@ -1,4 +1,4 @@
-import { getStepsPerMeasure } from "./rhythm";
+import { getStepsPerMeasure, getStepsPerBeat } from "./rhythm";
 import type { Pattern, TimeSignature, TriggerLevel, Subdivision } from "./types";
 
 /** Default BPM for new patterns. */
@@ -18,6 +18,20 @@ export const DEFAULT_SUBDIVISION: Subdivision = "quarter";
  */
 export function generateDefaultSteps(stepCount: number): TriggerLevel[] {
   return Array.from({ length: stepCount }, (): TriggerLevel => "off");
+}
+
+/**
+ * Returns steps with an accent on the first subdivision of each beat; others off.
+ */
+export function generateDownbeatSteps(
+  timeSignature: TimeSignature,
+  subdivision: Subdivision
+): TriggerLevel[] {
+  const stepCount = getStepsPerMeasure(timeSignature, subdivision);
+  const stepsPerBeat = getStepsPerBeat(timeSignature, subdivision);
+  return Array.from({ length: stepCount }, (_, i): TriggerLevel =>
+    i % stepsPerBeat === 0 ? "high" : "off"
+  );
 }
 
 /**
@@ -43,15 +57,23 @@ export function resizeSteps(
 
 /**
  * Returns a new pattern with the given time signature and subdivision.
- * BPM is unchanged; steps are resized (preserve by index, fill new with "off").
+ * BPM is unchanged. When time signature or subdivision changes, steps are
+ * re-initialized with accents on each downbeat.
  */
 export function resizePatternForNewSettings(
   pattern: Pattern,
   newTimeSignature: TimeSignature,
   newSubdivision: Subdivision
 ): Pattern {
-  const newStepCount = getStepsPerMeasure(newTimeSignature, newSubdivision);
-  const steps = resizeSteps(pattern.steps, newStepCount);
+  const settingsChanged =
+    pattern.timeSignature.numerator !== newTimeSignature.numerator ||
+    pattern.timeSignature.denominator !== newTimeSignature.denominator ||
+    pattern.subdivision !== newSubdivision;
+
+  const steps = settingsChanged
+    ? generateDownbeatSteps(newTimeSignature, newSubdivision)
+    : resizeSteps(pattern.steps, getStepsPerMeasure(newTimeSignature, newSubdivision));
+
   return {
     ...pattern,
     timeSignature: newTimeSignature,
@@ -61,7 +83,7 @@ export function resizePatternForNewSettings(
 }
 
 /**
- * Creates a default pattern: 4/4, quarter subdivision, default BPM, steps all "off".
+ * Creates a default pattern: 4/4, quarter subdivision, default BPM, downbeat accents.
  * Optional overrides; steps are only used if their length matches the (possibly overridden) time sig + subdivision.
  */
 export function createDefaultPattern(overrides?: Partial<Pattern>): Pattern {
@@ -71,7 +93,7 @@ export function createDefaultPattern(overrides?: Partial<Pattern>): Pattern {
   const steps =
     overrides?.steps?.length === stepCount
       ? overrides.steps
-      : generateDefaultSteps(stepCount);
+      : generateDownbeatSteps(timeSignature, subdivision);
 
   return {
     bpm: overrides?.bpm ?? DEFAULT_BPM,

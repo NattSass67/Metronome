@@ -39,6 +39,8 @@ export function createScheduler(context: AudioContext): SchedulerHandle {
   let startTime = 0;
   let getPattern: (() => Pattern) | null = null;
   let paused = false;
+  /** AudioContext time when pause began; used to freeze UI step and offset resume. */
+  let pausedAtTime: number | null = null;
 
   function runSchedule(): void {
     const pattern = getPattern?.();
@@ -64,6 +66,7 @@ export function createScheduler(context: AudioContext): SchedulerHandle {
     getPattern = getPatternFn;
     startTime = context.currentTime;
     paused = false;
+    pausedAtTime = null;
     // Schedule immediately so the very first beat isn't in the past when the interval ticks.
     runSchedule();
     timerId = setInterval(runSchedule, SCHEDULE_INTERVAL_MS);
@@ -74,12 +77,20 @@ export function createScheduler(context: AudioContext): SchedulerHandle {
       clearInterval(timerId);
       timerId = null;
     }
-    paused = true;
+    if (!paused) {
+      pausedAtTime = context.currentTime;
+      paused = true;
+    }
   }
 
   function resume(): void {
     if (!getPattern || !paused) return;
+    if (pausedAtTime !== null) {
+      startTime += context.currentTime - pausedAtTime;
+      pausedAtTime = null;
+    }
     paused = false;
+    runSchedule();
     timerId = setInterval(runSchedule, SCHEDULE_INTERVAL_MS);
   }
 
@@ -90,10 +101,15 @@ export function createScheduler(context: AudioContext): SchedulerHandle {
     }
     getPattern = null;
     paused = false;
+    pausedAtTime = null;
   }
 
   function reset(): void {
-    startTime = context.currentTime;
+    if (paused && pausedAtTime !== null) {
+      startTime = pausedAtTime;
+    } else {
+      startTime = context.currentTime;
+    }
   }
 
   function isRunning(): boolean {
@@ -107,7 +123,8 @@ export function createScheduler(context: AudioContext): SchedulerHandle {
   function getCurrentStepIndex(): number | null {
     const pattern = getPattern?.();
     if (!pattern) return null;
-    const elapsed = context.currentTime - startTime;
+    const now = paused && pausedAtTime !== null ? pausedAtTime : context.currentTime;
+    const elapsed = now - startTime;
     const stepDuration = getStepDurationSeconds(pattern);
     const k = Math.floor(elapsed / stepDuration);
     if (k < 0) return 0;
